@@ -1,5 +1,7 @@
+pub mod binary;
 pub mod crossover;
 pub mod mutation;
+pub mod permutation;
 pub mod selection;
 
 use crate::Individual;
