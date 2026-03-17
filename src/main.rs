@@ -1,7 +1,3 @@
-//! evo-engine: Advanced Evolutionary Computation Framework
-//!
-//! Demonstrates all algorithms on benchmark problems.
-
 use evo_engine::algorithms::cmaes::CmaEs;
 use evo_engine::algorithms::differential_evolution::{DEStrategy, DifferentialEvolution};
 use evo_engine::algorithms::ga::GeneticAlgorithm;
@@ -12,12 +8,12 @@ use evo_engine::problems::single_objective::*;
 use evo_engine::{EvolutionConfig, EvolutionResult, EvolutionaryAlgorithm};
 
 fn report(name: &str, result: &EvolutionResult<Vec<f64>>) {
-    println!("┌─────────────────────────────────────────────────────────");
-    println!("│ {}", name);
-    println!("├─────────────────────────────────────────────────────────");
-    println!("│ Best fitness : {:.8e}", result.best.fitness());
+    println!("+---------------------------------------------------------");
+    println!("| {}", name);
+    println!("+---------------------------------------------------------");
+    println!("| Best fitness : {:.8e}", result.best.fitness());
     println!(
-        "│ Best genome  : [{}]",
+        "| Best genome  : [{}]",
         result
             .best
             .genome
@@ -28,14 +24,14 @@ fn report(name: &str, result: &EvolutionResult<Vec<f64>>) {
             .join(", ")
     );
     if result.best.genome.len() > 6 {
-        println!("│               ... ({} dims total)", result.best.genome.len());
+        println!("|               ... ({} dims total)", result.best.genome.len());
     }
     if let Some(last) = result.history.last() {
-        println!("│ Final gen    : {}", last.generation);
-        println!("│ Mean fitness : {:.8e}", last.mean_fitness);
-        println!("│ Diversity    : {:.6}", last.diversity);
+        println!("| Final gen    : {}", last.generation);
+        println!("| Mean fitness : {:.8e}", last.mean_fitness);
+        println!("| Diversity    : {:.6}", last.diversity);
     }
-    println!("└─────────────────────────────────────────────────────────\n");
+    println!("+--------------------------------------------------------\n");
 }
 
 fn main() {
@@ -47,25 +43,25 @@ fn main() {
         seed: Some(42),
     };
 
-    // ── 1. Genetic Algorithm on Rastrigin ──────────────────────────
-    println!("══════════════════════════════════════════════════════════");
+    // -- 1. Genetic Algorithm on Rastrigin and Ackley ---------------------
+    println!("==========================================================");
     println!("  GENETIC ALGORITHM");
-    println!("══════════════════════════════════════════════════════════\n");
+    println!("==========================================================\n");
 
     let ga = GeneticAlgorithm::default();
 
     let rastrigin = Rastrigin { dim: 10 };
-    let result = ga.run(&rastrigin, &config);
-    report("GA → Rastrigin (10D)", &result);
+    let result = ga.run(&rastrigin, &config).expect("GA failed on Rastrigin");
+    report("GA -> Rastrigin (10D)", &result);
 
     let ackley = Ackley { dim: 10 };
-    let result = ga.run(&ackley, &config);
-    report("GA → Ackley (10D)", &result);
+    let result = ga.run(&ackley, &config).expect("GA failed on Ackley");
+    report("GA -> Ackley (10D)", &result);
 
-    // ── 2. Differential Evolution ──────────────────────────────────
-    println!("══════════════════════════════════════════════════════════");
+    // -- 2. Differential Evolution ----------------------------------------
+    println!("==========================================================");
     println!("  DIFFERENTIAL EVOLUTION");
-    println!("══════════════════════════════════════════════════════════\n");
+    println!("==========================================================\n");
 
     let de = DifferentialEvolution {
         strategy: DEStrategy::CurrentToBest1,
@@ -75,31 +71,35 @@ fn main() {
     };
 
     let rosenbrock = Rosenbrock { dim: 10 };
-    let result = de.run(&rosenbrock, &config);
-    report("DE/current-to-best/1 → Rosenbrock (10D)", &result);
+    let result = de
+        .run(&rosenbrock, &config)
+        .expect("DE failed on Rosenbrock");
+    report("DE/current-to-best/1 -> Rosenbrock (10D)", &result);
 
     let schwefel = Schwefel { dim: 10 };
-    let result = de.run(&schwefel, &config);
-    report("DE/current-to-best/1 → Schwefel (10D)", &result);
+    let result = de.run(&schwefel, &config).expect("DE failed on Schwefel");
+    report("DE/current-to-best/1 -> Schwefel (10D)", &result);
 
-    // ── 3. CMA-ES ──────────────────────────────────────────────────
-    println!("══════════════════════════════════════════════════════════");
+    // -- 3. CMA-ES --------------------------------------------------------
+    println!("==========================================================");
     println!("  CMA-ES");
-    println!("══════════════════════════════════════════════════════════\n");
+    println!("==========================================================\n");
 
     let cmaes = CmaEs { initial_sigma: 0.3 };
     let levy = Levy { dim: 10 };
-    let result = cmaes.run(&levy, &config);
-    report("CMA-ES → Levy (10D)", &result);
+    let result = cmaes.run(&levy, &config).expect("CMA-ES failed on Levy");
+    report("CMA-ES -> Levy (10D)", &result);
 
     let griewank = Griewank { dim: 10 };
-    let result = cmaes.run(&griewank, &config);
-    report("CMA-ES → Griewank (10D)", &result);
+    let result = cmaes
+        .run(&griewank, &config)
+        .expect("CMA-ES failed on Griewank");
+    report("CMA-ES -> Griewank (10D)", &result);
 
-    // ── 4. Island Model GA ─────────────────────────────────────────
-    println!("══════════════════════════════════════════════════════════");
+    // -- 4. Island Model GA -----------------------------------------------
+    println!("==========================================================");
     println!("  ISLAND MODEL (4 islands, ring migration)");
-    println!("══════════════════════════════════════════════════════════\n");
+    println!("==========================================================\n");
 
     let island_config = IslandModelConfig {
         num_islands: 4,
@@ -110,13 +110,14 @@ fn main() {
     };
 
     let rastrigin20 = Rastrigin { dim: 20 };
-    let result = run_island_model(&rastrigin20, &island_config);
-    report("Island Model → Rastrigin (20D)", &result);
+    let result = run_island_model(&rastrigin20, &island_config)
+        .expect("Island model failed on Rastrigin");
+    report("Island Model -> Rastrigin (20D)", &result);
 
-    // ── 5. NSGA-II multi-objective ─────────────────────────────────
-    println!("══════════════════════════════════════════════════════════");
+    // -- 5. NSGA-II multi-objective ---------------------------------------
+    println!("==========================================================");
     println!("  NSGA-II (Multi-Objective)");
-    println!("══════════════════════════════════════════════════════════\n");
+    println!("==========================================================\n");
 
     let nsga2 = Nsga2::default();
     let zdt1 = Zdt1 { dim: 30 };
@@ -127,22 +128,29 @@ fn main() {
         elitism_count: 0,
         seed: Some(42),
     };
-    let result = nsga2.run(&zdt1, &mo_config);
+    let result = nsga2.run(&zdt1, &mo_config).expect("NSGA-II failed on ZDT1");
 
-    println!("┌─────────────────────────────────────────────────────────");
-    println!("│ NSGA-II → ZDT1 (30D, 2 objectives)");
-    println!("├─────────────────────────────────────────────────────────");
-    println!("│ Pareto front size: {}", result.pareto_front.len());
-    println!("│ Sample Pareto solutions (f1, f2):");
+    println!("+---------------------------------------------------------");
+    println!("| NSGA-II -> ZDT1 (30D, 2 objectives)");
+    println!("+---------------------------------------------------------");
+    println!("| Pareto front size: {}", result.pareto_front.len());
+    println!("| Sample Pareto solutions (f1, f2):");
     let step = (result.pareto_front.len() / 8).max(1);
     for (i, ind) in result.pareto_front.iter().enumerate().step_by(step) {
         println!(
-            "│   [{:3}] f1={:.4}, f2={:.4}",
+            "|   [{:3}] f1={:.4}, f2={:.4}",
             i, ind.objectives[0], ind.objectives[1]
         );
     }
-    println!("└─────────────────────────────────────────────────────────\n");
+    println!("+--------------------------------------------------------\n");
 
-    // ── Summary ────────────────────────────────────────────────────
+    // -- Export demo -------------------------------------------------------
+    println!("CSV export (first 5 lines of last run's history):");
+    let csv = result.history_to_csv();
+    for line in csv.lines().take(6) {
+        println!("  {}", line);
+    }
+    println!("  ...\n");
+
     println!("All benchmarks complete.");
 }
