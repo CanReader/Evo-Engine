@@ -1,14 +1,16 @@
 //! Island Model: parallel sub-populations with periodic migration.
 //!
-//! Each island runs an independent evolutionary algorithm. Every `migration_interval`
-//! generations, the best individuals migrate between islands in a ring topology.
+//! Each island evolves independently. Every `migration_interval` generations,
+//! the best individuals from each island migrate to the next one in a ring.
+//! This keeps diversity high while still allowing good solutions to spread.
 
-use crate::{
-    population_diversity, EvolutionConfig, EvolutionResult, GenerationStats, Individual, Problem,
-};
 use crate::operators::crossover::sbx_crossover;
 use crate::operators::mutation::polynomial_mutation;
 use crate::operators::selection::tournament_select;
+use crate::{
+    population_diversity, EvoResult, EvolutionConfig, EvolutionResult, GenerationStats,
+    Individual, Problem,
+};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 
@@ -40,10 +42,14 @@ impl Default for IslandModelConfig {
     }
 }
 
+/// Run the island model. Returns the overall best individual found
+/// across all islands and all generations.
 pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
     problem: &P,
     config: &IslandModelConfig,
-) -> EvolutionResult<Vec<f64>> {
+) -> EvoResult<EvolutionResult<Vec<f64>>> {
+    config.base_config.validate()?;
+
     let island_size = config.base_config.population_size / config.num_islands;
     let bounds = problem.bounds();
     let mut rng = match config.base_config.seed {
@@ -52,7 +58,7 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
     };
     let mut_prob_gene = config.mutation_prob / problem.dimension() as f64;
 
-    // Initialise islands
+    // Create islands
     let mut islands: Vec<Vec<Individual<Vec<f64>>>> = (0..config.num_islands)
         .map(|_| {
             (0..island_size)
@@ -74,13 +80,17 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
         .clone();
 
     let mut history = Vec::new();
+    let mut generations_run = 0;
 
     for gen in 0..config.base_config.max_generations {
-        // Evolve each island independently for one generation
+        generations_run = gen + 1;
+
+        // Evolve each island for one generation
         for island in &mut islands {
             island.sort_by(|a, b| a.fitness().partial_cmp(&b.fitness()).unwrap());
 
-            let mut new_pop: Vec<Individual<Vec<f64>>> = island[..2.min(island.len())].to_vec();
+            let mut new_pop: Vec<Individual<Vec<f64>>> =
+                island[..2.min(island.len())].to_vec();
 
             while new_pop.len() < island_size {
                 let p1 = tournament_select(island, config.tournament_size, &mut rng);
@@ -109,10 +119,9 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
             *island = new_pop;
         }
 
-        // Migration (ring topology)
+        // Ring migration: best from island i go to island (i+1) % n
         if gen > 0 && gen % config.migration_interval == 0 {
             let num = config.num_islands;
-            // Collect migrants from each island (best individuals)
             let migrants: Vec<Vec<Individual<Vec<f64>>>> = islands
                 .iter()
                 .map(|island| {
@@ -122,7 +131,7 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
                 })
                 .collect();
 
-            // Send migrants to next island, replace worst
+            // Replace worst individuals on the receiving island
             for i in 0..num {
                 let target = (i + 1) % num;
                 let island = &mut islands[target];
@@ -136,9 +145,12 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
             }
         }
 
-        // Global statistics
+        // Collect global stats
         let all: Vec<&Individual<Vec<f64>>> = islands.iter().flatten().collect();
-        let gen_best = all.iter().min_by(|a, b| a.fitness().partial_cmp(&b.fitness()).unwrap()).unwrap();
+        let gen_best = all
+            .iter()
+            .min_by(|a, b| a.fitness().partial_cmp(&b.fitness()).unwrap())
+            .unwrap();
         if gen_best.fitness() < best_ever.fitness() {
             best_ever = (*gen_best).clone();
         }
@@ -160,10 +172,10 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
         }
     }
 
-    EvolutionResult {
+    Ok(EvolutionResult {
         best: best_ever,
         pareto_front: Vec::new(),
         history,
-        generations_run: config.base_config.max_generations,
-    }
+        generations_run,
+    })
 }
