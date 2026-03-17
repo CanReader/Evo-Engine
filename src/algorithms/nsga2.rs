@@ -1,11 +1,15 @@
-//! NSGA-II: Non-dominated Sorting Genetic Algorithm II (multi-objective).
+//! NSGA-II: Non-dominated Sorting Genetic Algorithm II.
+//!
+//! The standard multi-objective optimizer. Maintains a population sorted
+//! by Pareto dominance rank and uses crowding distance to preserve
+//! diversity along the front.
 
 use crate::operators::crossover::sbx_crossover;
 use crate::operators::mutation::polynomial_mutation;
 use crate::operators::selection::crowded_tournament_select;
 use crate::{
-    crowding_distance_assignment, non_dominated_sort, EvolutionConfig, EvolutionResult,
-    EvolutionaryAlgorithm, GenerationStats, Individual, Problem,
+    crowding_distance_assignment, non_dominated_sort, EvoResult, EvolutionConfig,
+    EvolutionResult, EvolutionaryAlgorithm, GenerationStats, Individual, Problem,
 };
 use ordered_float::OrderedFloat;
 use rand::rngs::StdRng;
@@ -36,7 +40,9 @@ impl EvolutionaryAlgorithm for Nsga2 {
         &self,
         problem: &P,
         config: &EvolutionConfig,
-    ) -> EvolutionResult<Vec<f64>> {
+    ) -> EvoResult<EvolutionResult<Vec<f64>>> {
+        config.validate()?;
+
         let mut rng = match config.seed {
             Some(s) => StdRng::seed_from_u64(s),
             None => StdRng::from_entropy(),
@@ -47,7 +53,7 @@ impl EvolutionaryAlgorithm for Nsga2 {
         let np = config.population_size;
         let mut_prob = self.mutation_prob / dim as f64;
 
-        // Initialise parent population
+        // Initial parent population
         let mut parents: Vec<Individual<Vec<f64>>> = (0..np)
             .map(|_| {
                 let g = problem.random_genome(&mut rng);
@@ -58,15 +64,18 @@ impl EvolutionaryAlgorithm for Nsga2 {
             .collect();
 
         let mut history = Vec::new();
+        let mut generations_run = 0;
 
         for gen in 0..config.max_generations {
-            // Generate offspring
-            let mut offspring: Vec<Individual<Vec<f64>>> = Vec::with_capacity(np);
+            generations_run = gen + 1;
 
-            // Assign ranks/crowding to parents for selection
+            // Assign ranks and crowding to parents for selection
             non_dominated_sort(&mut parents);
             let front_indices: Vec<usize> = (0..parents.len()).collect();
             crowding_distance_assignment(&mut parents, &front_indices);
+
+            // Generate offspring via crossover + mutation
+            let mut offspring: Vec<Individual<Vec<f64>>> = Vec::with_capacity(np);
 
             while offspring.len() < np {
                 let p1 = crowded_tournament_select(&parents, &mut rng);
@@ -92,14 +101,11 @@ impl EvolutionaryAlgorithm for Nsga2 {
                 }
             }
 
-            // Combine parents + offspring
+            // Combine parents + offspring, then select next generation
             let mut combined: Vec<Individual<Vec<f64>>> = parents;
             combined.extend(offspring);
-
-            // Non-dominated sorting on combined
             non_dominated_sort(&mut combined);
 
-            // Build new parent population front by front
             let max_rank = combined.iter().map(|i| i.rank).max().unwrap_or(0);
             let mut new_parents: Vec<Individual<Vec<f64>>> = Vec::with_capacity(np);
 
@@ -117,7 +123,7 @@ impl EvolutionaryAlgorithm for Nsga2 {
                         new_parents.push(combined[i].clone());
                     }
                 } else {
-                    // Partial front — select by crowding distance
+                    // This front doesn't fit entirely; pick by crowding distance
                     crowding_distance_assignment(&mut combined, &front);
                     let mut sorted_front = front;
                     sorted_front.sort_by(|&a, &b| {
@@ -134,25 +140,27 @@ impl EvolutionaryAlgorithm for Nsga2 {
 
             parents = new_parents;
 
-            // Statistics (using first objective for reporting)
-            let best_f = parents.iter().map(|i| i.fitness()).fold(f64::INFINITY, f64::min);
+            let best_f = parents
+                .iter()
+                .map(|i| i.fitness())
+                .fold(f64::INFINITY, f64::min);
             let mean_f = parents.iter().map(|i| i.fitness()).sum::<f64>() / np as f64;
             history.push(GenerationStats {
                 generation: gen,
                 best_fitness: best_f,
                 mean_fitness: mean_f,
-                worst_fitness: parents.iter().map(|i| i.fitness()).fold(f64::NEG_INFINITY, f64::max),
+                worst_fitness: parents
+                    .iter()
+                    .map(|i| i.fitness())
+                    .fold(f64::NEG_INFINITY, f64::max),
                 diversity: 0.0,
             });
         }
 
-        // Extract Pareto front (rank 0)
+        // Final sort to extract the Pareto front
         non_dominated_sort(&mut parents);
-        let pareto_front: Vec<Individual<Vec<f64>>> = parents
-            .iter()
-            .filter(|i| i.rank == 0)
-            .cloned()
-            .collect();
+        let pareto_front: Vec<Individual<Vec<f64>>> =
+            parents.iter().filter(|i| i.rank == 0).cloned().collect();
 
         let best = parents
             .iter()
@@ -160,11 +168,11 @@ impl EvolutionaryAlgorithm for Nsga2 {
             .unwrap()
             .clone();
 
-        EvolutionResult {
+        Ok(EvolutionResult {
             best,
             pareto_front,
             history,
-            generations_run: config.max_generations,
-        }
+            generations_run,
+        })
     }
 }
