@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git remote:*)",
+      "Bash(cargo check:*)",
+      "Bash(which rustc:*)",
+      "Read(//c/Users/canbe/Desktop/projects/evo-engine/$USERPROFILE/.cargo/bin/**)",
+      "Read(//c/Users/canbe/.cargo/bin/**)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check 2>&1)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo test 2>&1)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check --examples 2>&1)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check --examples 2>&1 && cargo test 2>&1)"
+    ]
+  }
+}
