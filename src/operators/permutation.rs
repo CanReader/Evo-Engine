@@ -67,7 +67,7 @@ pub fn pmx_crossover(
                 continue;
             }
             // Follow the mapping chain until we find a free position
-            let mut val = filler[i];
+            let val = filler[i];
             let mut target = i;
             loop {
                 // Where does donor[target] sit in filler?

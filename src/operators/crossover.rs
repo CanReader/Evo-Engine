@@ -30,7 +30,7 @@ pub fn sbx_crossover(
         let y2 = p1[i].max(p2[i]);
         let diff = y2 - y1;
 
-        let beta = |yl: f64, yu: f64| -> f64 {
+        let mut beta = |yl: f64, yu: f64| -> f64 {
             let beta1 = 1.0 + 2.0 * (yl - lo) / diff;
             let beta2 = 1.0 + 2.0 * (hi - yu) / diff;
             let alpha1 = 2.0 - beta1.powf(-(eta + 1.0));

@@ -5,7 +5,6 @@ pub mod permutation;
 pub mod selection;
 
 use crate::Individual;
-use rand::Rng;
 
 // ---------------------------------------------------------------------------
 // Operator traits - implement these to plug in custom operators
