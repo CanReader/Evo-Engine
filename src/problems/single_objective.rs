@@ -148,8 +148,12 @@ impl Problem for Schwefel {
 
     fn evaluate(&self, ind: &mut Individual<Vec<f64>>) {
         let n = self.dim as f64;
-        let val =
-            418.9829 * n - ind.genome.iter().map(|x| x * x.abs().sqrt().sin()).sum::<f64>();
+        let val = 418.9829 * n
+            - ind
+                .genome
+                .iter()
+                .map(|x| x * x.abs().sqrt().sin())
+                .sum::<f64>();
         ind.objectives = vec![val];
     }
 }
@@ -219,8 +223,7 @@ impl Problem for Levy {
         let w: Vec<f64> = ind.genome.iter().map(|x| 1.0 + (x - 1.0) / 4.0).collect();
         let n = w.len();
         let term1 = (PI * w[0]).sin().powi(2);
-        let term3 =
-            (w[n - 1] - 1.0).powi(2) * (1.0 + (2.0 * PI * w[n - 1]).sin().powi(2));
+        let term3 = (w[n - 1] - 1.0).powi(2) * (1.0 + (2.0 * PI * w[n - 1]).sin().powi(2));
         let sum: f64 = w[..n - 1]
             .iter()
             .map(|wi| (wi - 1.0).powi(2) * (1.0 + 10.0 * (PI * wi + 1.0).sin().powi(2)))

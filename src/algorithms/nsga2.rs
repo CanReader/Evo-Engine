@@ -8,8 +8,8 @@ use crate::operators::crossover::sbx_crossover;
 use crate::operators::mutation::polynomial_mutation;
 use crate::operators::selection::crowded_tournament_select;
 use crate::{
-    crowding_distance_assignment, non_dominated_sort, EvoResult, EvolutionConfig,
-    EvolutionResult, EvolutionaryAlgorithm, GenerationStats, Individual, Problem,
+    crowding_distance_assignment, non_dominated_sort, EvoResult, EvolutionConfig, EvolutionResult,
+    EvolutionaryAlgorithm, GenerationStats, Individual, Problem,
 };
 use ordered_float::OrderedFloat;
 use rand::rngs::StdRng;

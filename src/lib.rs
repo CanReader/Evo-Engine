@@ -6,9 +6,6 @@ pub mod problems;
 use ordered_float::OrderedFloat;
 use std::fmt;
 
-#[cfg(feature = "serialize")]
-use serde;
-
 // ---------------------------------------------------------------------------
 // Error types
 // ---------------------------------------------------------------------------
@@ -177,7 +174,12 @@ pub trait Problem: Send + Sync {
 /// custom early-stopping logic.
 pub trait Callback<G: Clone> {
     /// Called after each generation. Return `false` to stop the run early.
-    fn on_generation(&mut self, _gen: usize, _stats: &GenerationStats, _best: &Individual<G>) -> bool {
+    fn on_generation(
+        &mut self,
+        _gen: usize,
+        _stats: &GenerationStats,
+        _best: &Individual<G>,
+    ) -> bool {
         true
     }
 
@@ -274,7 +276,8 @@ impl EvolutionResult<Vec<f64>> {
     ///
     /// Each line has: generation, best_fitness, mean_fitness, worst_fitness, diversity
     pub fn history_to_csv(&self) -> String {
-        let mut buf = String::from("generation,best_fitness,mean_fitness,worst_fitness,diversity\n");
+        let mut buf =
+            String::from("generation,best_fitness,mean_fitness,worst_fitness,diversity\n");
         for s in &self.history {
             buf.push_str(&format!(
                 "{},{},{},{},{}\n",

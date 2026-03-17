@@ -24,7 +24,10 @@ fn report(name: &str, result: &EvolutionResult<Vec<f64>>) {
             .join(", ")
     );
     if result.best.genome.len() > 6 {
-        println!("|               ... ({} dims total)", result.best.genome.len());
+        println!(
+            "|               ... ({} dims total)",
+            result.best.genome.len()
+        );
     }
     if let Some(last) = result.history.last() {
         println!("| Final gen    : {}", last.generation);
@@ -110,8 +113,8 @@ fn main() {
     };
 
     let rastrigin20 = Rastrigin { dim: 20 };
-    let result = run_island_model(&rastrigin20, &island_config)
-        .expect("Island model failed on Rastrigin");
+    let result =
+        run_island_model(&rastrigin20, &island_config).expect("Island model failed on Rastrigin");
     report("Island Model -> Rastrigin (20D)", &result);
 
     // -- 5. NSGA-II multi-objective ---------------------------------------
@@ -128,7 +131,9 @@ fn main() {
         elitism_count: 0,
         seed: Some(42),
     };
-    let result = nsga2.run(&zdt1, &mo_config).expect("NSGA-II failed on ZDT1");
+    let result = nsga2
+        .run(&zdt1, &mo_config)
+        .expect("NSGA-II failed on ZDT1");
 
     println!("+---------------------------------------------------------");
     println!("| NSGA-II -> ZDT1 (30D, 2 objectives)");

@@ -40,8 +40,7 @@ impl Problem for Zdt1 {
 
     fn evaluate(&self, ind: &mut Individual<Vec<f64>>) {
         let f1 = ind.genome[0];
-        let g: f64 =
-            1.0 + 9.0 * ind.genome[1..].iter().sum::<f64>() / (self.dim - 1) as f64;
+        let g: f64 = 1.0 + 9.0 * ind.genome[1..].iter().sum::<f64>() / (self.dim - 1) as f64;
         let f2 = g * (1.0 - (f1 / g).sqrt());
         ind.objectives = vec![f1, f2];
     }
@@ -73,8 +72,7 @@ impl Problem for Zdt2 {
 
     fn evaluate(&self, ind: &mut Individual<Vec<f64>>) {
         let f1 = ind.genome[0];
-        let g: f64 =
-            1.0 + 9.0 * ind.genome[1..].iter().sum::<f64>() / (self.dim - 1) as f64;
+        let g: f64 = 1.0 + 9.0 * ind.genome[1..].iter().sum::<f64>() / (self.dim - 1) as f64;
         let f2 = g * (1.0 - (f1 / g).powi(2));
         ind.objectives = vec![f1, f2];
     }
@@ -106,8 +104,7 @@ impl Problem for Zdt3 {
 
     fn evaluate(&self, ind: &mut Individual<Vec<f64>>) {
         let f1 = ind.genome[0];
-        let g: f64 =
-            1.0 + 9.0 * ind.genome[1..].iter().sum::<f64>() / (self.dim - 1) as f64;
+        let g: f64 = 1.0 + 9.0 * ind.genome[1..].iter().sum::<f64>() / (self.dim - 1) as f64;
         let f2 = g * (1.0 - (f1 / g).sqrt() - (f1 / g) * (10.0 * PI * f1).sin());
         ind.objectives = vec![f1, f2];
     }

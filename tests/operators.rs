@@ -25,8 +25,18 @@ fn sbx_children_stay_in_bounds() {
     for _ in 0..100 {
         let (c1, c2) = sbx_crossover(&p1, &p2, &bounds, 20.0, &mut rng);
         for i in 0..3 {
-            assert!(c1[i] >= 0.0 && c1[i] <= 10.0, "c1[{}] out of bounds: {}", i, c1[i]);
-            assert!(c2[i] >= 0.0 && c2[i] <= 10.0, "c2[{}] out of bounds: {}", i, c2[i]);
+            assert!(
+                c1[i] >= 0.0 && c1[i] <= 10.0,
+                "c1[{}] out of bounds: {}",
+                i,
+                c1[i]
+            );
+            assert!(
+                c2[i] >= 0.0 && c2[i] <= 10.0,
+                "c2[{}] out of bounds: {}",
+                i,
+                c2[i]
+            );
         }
     }
 }
@@ -116,7 +126,10 @@ fn adaptive_mutator_adjusts_sigma() {
         am.total_count += 1;
         am.report_success(true);
     }
-    assert!(am.sigma > initial_sigma, "sigma should increase after many successes");
+    assert!(
+        am.sigma > initial_sigma,
+        "sigma should increase after many successes"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -216,7 +229,11 @@ fn order_crossover_produces_valid_permutation() {
         assert_eq!(child.len(), 8);
         let mut sorted = child.clone();
         sorted.sort();
-        assert_eq!(sorted, vec![0, 1, 2, 3, 4, 5, 6, 7], "not a valid permutation");
+        assert_eq!(
+            sorted,
+            vec![0, 1, 2, 3, 4, 5, 6, 7],
+            "not a valid permutation"
+        );
     }
 }
 
@@ -232,8 +249,18 @@ fn pmx_crossover_produces_valid_permutations() {
         let mut s2 = c2.clone();
         s1.sort();
         s2.sort();
-        assert_eq!(s1, vec![0, 1, 2, 3, 4], "c1 not a valid permutation: {:?}", c1);
-        assert_eq!(s2, vec![0, 1, 2, 3, 4], "c2 not a valid permutation: {:?}", c2);
+        assert_eq!(
+            s1,
+            vec![0, 1, 2, 3, 4],
+            "c1 not a valid permutation: {:?}",
+            c1
+        );
+        assert_eq!(
+            s2,
+            vec![0, 1, 2, 3, 4],
+            "c2 not a valid permutation: {:?}",
+            c2
+        );
     }
 }
 

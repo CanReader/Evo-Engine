@@ -87,11 +87,7 @@ pub fn blx_alpha_crossover(
 // ---------------------------------------------------------------------------
 
 /// Simple linear combination of two parents with a random mixing weight.
-pub fn arithmetic_crossover(
-    p1: &[f64],
-    p2: &[f64],
-    rng: &mut dyn RngCore,
-) -> (Vec<f64>, Vec<f64>) {
+pub fn arithmetic_crossover(p1: &[f64], p2: &[f64], rng: &mut dyn RngCore) -> (Vec<f64>, Vec<f64>) {
     let alpha: f64 = rng.gen();
     let c1 = p1
         .iter()

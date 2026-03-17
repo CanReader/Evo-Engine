@@ -6,8 +6,8 @@
 //! at the cost of not modeling variable correlations.
 
 use crate::{
-    EvoError, EvoResult, EvolutionConfig, EvolutionResult, EvolutionaryAlgorithm,
-    GenerationStats, Individual, Problem,
+    EvoError, EvoResult, EvolutionConfig, EvolutionResult, EvolutionaryAlgorithm, GenerationStats,
+    Individual, Problem,
 };
 use rand::rngs::StdRng;
 use rand::SeedableRng;
@@ -59,17 +59,15 @@ impl EvolutionaryAlgorithm for CmaEs {
 
         // Step-size control parameters
         let c_sigma = (mu_eff + 2.0) / (n as f64 + mu_eff + 5.0);
-        let d_sigma = 1.0
-            + 2.0 * (((mu_eff - 1.0) / (n as f64 + 1.0)).sqrt() - 1.0).max(0.0)
-            + c_sigma;
-        let chi_n = (n as f64).sqrt()
-            * (1.0 - 1.0 / (4.0 * n as f64) + 1.0 / (21.0 * (n as f64).powi(2)));
+        let d_sigma =
+            1.0 + 2.0 * (((mu_eff - 1.0) / (n as f64 + 1.0)).sqrt() - 1.0).max(0.0) + c_sigma;
+        let chi_n =
+            (n as f64).sqrt() * (1.0 - 1.0 / (4.0 * n as f64) + 1.0 / (21.0 * (n as f64).powi(2)));
 
         // Covariance adaptation parameters
         let c_c = (4.0 + mu_eff / n as f64) / (n as f64 + 4.0 + 2.0 * mu_eff / n as f64);
         let c1 = 2.0 / ((n as f64 + 1.3).powi(2) + mu_eff);
-        let c_mu = (2.0 * (mu_eff - 2.0 + 1.0 / mu_eff)
-            / ((n as f64 + 2.0).powi(2) + mu_eff))
+        let c_mu = (2.0 * (mu_eff - 2.0 + 1.0 / mu_eff) / ((n as f64 + 2.0).powi(2) + mu_eff))
             .min(1.0 - c1);
 
         // Initial state: start from center of search space
@@ -130,14 +128,12 @@ impl EvolutionaryAlgorithm for CmaEs {
 
             // Weighted mean recombination
             let old_mean = mean.clone();
-            for i in 0..n {
-                mean[i] = (0..mu).map(|j| weights[j] * pop[j].0.genome[i]).sum();
+            for (i, m) in mean.iter_mut().enumerate() {
+                *m = (0..mu).map(|j| weights[j] * pop[j].0.genome[i]).sum();
             }
 
             // Evolution path update
-            let mean_shift: Vec<f64> = (0..n)
-                .map(|i| (mean[i] - old_mean[i]) / sigma)
-                .collect();
+            let mean_shift: Vec<f64> = (0..n).map(|i| (mean[i] - old_mean[i]) / sigma).collect();
 
             for i in 0..n {
                 p_sigma[i] = (1.0 - c_sigma) * p_sigma[i]
@@ -166,8 +162,7 @@ impl EvolutionaryAlgorithm for CmaEs {
                 let rank_mu: f64 = (0..mu)
                     .map(|j| weights[j] * (pop[j].1[i] * pop[j].1[i]))
                     .sum();
-                diag_c[i] =
-                    (1.0 - c1 - c_mu) * diag_c[i] + c1 * rank_one + c_mu * rank_mu;
+                diag_c[i] = (1.0 - c1 - c_mu) * diag_c[i] + c1 * rank_one + c_mu * rank_mu;
                 diag_c[i] = diag_c[i].max(1e-20);
             }
 

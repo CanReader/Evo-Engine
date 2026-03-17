@@ -4,7 +4,7 @@ use evo_engine::algorithms::ga::GeneticAlgorithm;
 use evo_engine::algorithms::nsga2::Nsga2;
 use evo_engine::island::{run_island_model, IslandModelConfig};
 use evo_engine::problems::multi_objective::Zdt1;
-use evo_engine::problems::single_objective::{Rastrigin, Rosenbrock, Ackley};
+use evo_engine::problems::single_objective::{Ackley, Rastrigin, Rosenbrock};
 use evo_engine::{EvolutionConfig, EvolutionaryAlgorithm};
 
 fn small_config() -> EvolutionConfig {
@@ -93,7 +93,11 @@ fn de_strategies_all_work() {
     let problem = Rastrigin { dim: 3 };
     let config = small_config();
 
-    for strategy in [DEStrategy::Rand1Bin, DEStrategy::Best1Bin, DEStrategy::CurrentToBest1] {
+    for strategy in [
+        DEStrategy::Rand1Bin,
+        DEStrategy::Best1Bin,
+        DEStrategy::CurrentToBest1,
+    ] {
         let de = DifferentialEvolution {
             strategy,
             f: 0.8,

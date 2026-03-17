@@ -2,7 +2,7 @@
 ///
 /// This shows how to use the binary genome operators with the Knapsack
 /// problem definition from evo_engine::problems::combinatorial.
-use evo_engine::operators::binary::{single_point_crossover, bitflip_mutation};
+use evo_engine::operators::binary::{bitflip_mutation, single_point_crossover};
 use evo_engine::problems::combinatorial::Knapsack;
 use evo_engine::{Individual, Problem};
 use rand::rngs::StdRng;
@@ -12,12 +12,12 @@ fn main() {
     // 20 items with random weights and values
     let knapsack = Knapsack {
         weights: vec![
-            12.0, 7.0, 11.0, 8.0, 9.0, 14.0, 3.0, 6.0, 10.0, 5.0,
-            13.0, 4.0, 15.0, 2.0, 8.0, 11.0, 7.0, 6.0, 9.0, 3.0,
+            12.0, 7.0, 11.0, 8.0, 9.0, 14.0, 3.0, 6.0, 10.0, 5.0, 13.0, 4.0, 15.0, 2.0, 8.0, 11.0,
+            7.0, 6.0, 9.0, 3.0,
         ],
         values: vec![
-            24.0, 13.0, 23.0, 15.0, 16.0, 28.0, 5.0, 10.0, 21.0, 9.0,
-            25.0, 7.0, 29.0, 3.0, 14.0, 20.0, 12.0, 11.0, 17.0, 4.0,
+            24.0, 13.0, 23.0, 15.0, 16.0, 28.0, 5.0, 10.0, 21.0, 9.0, 25.0, 7.0, 29.0, 3.0, 14.0,
+            20.0, 12.0, 11.0, 17.0, 4.0,
         ],
         capacity: 50.0,
         penalty: 100.0,

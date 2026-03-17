@@ -8,8 +8,8 @@ use crate::operators::crossover::sbx_crossover;
 use crate::operators::mutation::polynomial_mutation;
 use crate::operators::selection::tournament_select;
 use crate::{
-    population_diversity, EvoResult, EvolutionConfig, EvolutionResult, GenerationStats,
-    Individual, Problem,
+    population_diversity, EvoResult, EvolutionConfig, EvolutionResult, GenerationStats, Individual,
+    Problem,
 };
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -89,8 +89,7 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
         for island in &mut islands {
             island.sort_by(|a, b| a.fitness().partial_cmp(&b.fitness()).unwrap());
 
-            let mut new_pop: Vec<Individual<Vec<f64>>> =
-                island[..2.min(island.len())].to_vec();
+            let mut new_pop: Vec<Individual<Vec<f64>>> = island[..2.min(island.len())].to_vec();
 
             while new_pop.len() < island_size {
                 let p1 = tournament_select(island, config.tournament_size, &mut rng);
@@ -132,12 +131,12 @@ pub fn run_island_model<P: Problem<Genome = Vec<f64>>>(
                 .collect();
 
             // Replace worst individuals on the receiving island
-            for i in 0..num {
+            for (i, migrant_group) in migrants.iter().enumerate() {
                 let target = (i + 1) % num;
                 let island = &mut islands[target];
                 island.sort_by(|a, b| a.fitness().partial_cmp(&b.fitness()).unwrap());
                 let len = island.len();
-                for (j, migrant) in migrants[i].iter().enumerate() {
+                for (j, migrant) in migrant_group.iter().enumerate() {
                     if j < len {
                         island[len - 1 - j] = migrant.clone();
                     }

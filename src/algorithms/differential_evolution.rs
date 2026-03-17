@@ -118,8 +118,7 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
                         let (a, b) = (pick(), pick());
                         (0..dim)
                             .map(|d| {
-                                pop[best_idx].genome[d]
-                                    + f * (pop[a].genome[d] - pop[b].genome[d])
+                                pop[best_idx].genome[d] + f * (pop[a].genome[d] - pop[b].genome[d])
                             })
                             .collect()
                     }

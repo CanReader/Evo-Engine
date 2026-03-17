@@ -23,12 +23,7 @@ pub trait CrossoverOp: Send + Sync {
 
 /// Mutation operator that modifies a genome in place.
 pub trait MutationOp: Send + Sync {
-    fn mutate(
-        &self,
-        genome: &mut [f64],
-        bounds: &[(f64, f64)],
-        rng: &mut dyn RngCore,
-    );
+    fn mutate(&self, genome: &mut [f64], bounds: &[(f64, f64)], rng: &mut dyn RngCore);
 }
 
 /// Selection operator that picks one individual from the population.
@@ -132,12 +127,7 @@ impl Default for PolynomialMutation {
 }
 
 impl MutationOp for PolynomialMutation {
-    fn mutate(
-        &self,
-        genome: &mut [f64],
-        bounds: &[(f64, f64)],
-        rng: &mut dyn RngCore,
-    ) {
+    fn mutate(&self, genome: &mut [f64], bounds: &[(f64, f64)], rng: &mut dyn RngCore) {
         let per_gene = self.prob / genome.len().max(1) as f64;
         mutation::polynomial_mutation(genome, bounds, self.eta, per_gene, rng);
     }
@@ -159,12 +149,7 @@ impl Default for GaussianMutation {
 }
 
 impl MutationOp for GaussianMutation {
-    fn mutate(
-        &self,
-        genome: &mut [f64],
-        bounds: &[(f64, f64)],
-        rng: &mut dyn RngCore,
-    ) {
+    fn mutate(&self, genome: &mut [f64], bounds: &[(f64, f64)], rng: &mut dyn RngCore) {
         mutation::gaussian_mutation(genome, bounds, self.sigma, self.prob, rng);
     }
 }
@@ -185,12 +170,7 @@ impl Default for CauchyMutation {
 }
 
 impl MutationOp for CauchyMutation {
-    fn mutate(
-        &self,
-        genome: &mut [f64],
-        bounds: &[(f64, f64)],
-        rng: &mut dyn RngCore,
-    ) {
+    fn mutate(&self, genome: &mut [f64], bounds: &[(f64, f64)], rng: &mut dyn RngCore) {
         mutation::cauchy_mutation(genome, bounds, self.scale, self.prob, rng);
     }
 }

@@ -11,7 +11,12 @@
       "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check 2>&1)",
       "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo test 2>&1)",
       "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check --examples 2>&1)",
-      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check --examples 2>&1 && cargo test 2>&1)"
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo check --examples 2>&1 && cargo test 2>&1)",
+      "Bash(git push:*)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo clippy -- -D warnings 2>&1)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo clippy -- -D warnings 2>&1 && cargo test 2>&1 && cargo fmt --check 2>&1)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo fmt)",
+      "Bash(export PATH=\"$PATH:/c/Users/canbe/.cargo/bin\" && cargo clippy -- -D warnings 2>&1 && cargo fmt --check 2>&1 && echo \"ALL CLEAN\")"
     ]
   }
 }

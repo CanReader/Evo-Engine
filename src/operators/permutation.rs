@@ -8,11 +8,7 @@ use rand::{Rng, RngCore};
 /// Order crossover (OX). Copies a random slice from p1 directly, then
 /// fills the remaining positions with elements from p2 in the order
 /// they appear, skipping any that are already placed.
-pub fn order_crossover(
-    p1: &[usize],
-    p2: &[usize],
-    rng: &mut dyn RngCore,
-) -> Vec<usize> {
+pub fn order_crossover(p1: &[usize], p2: &[usize], rng: &mut dyn RngCore) -> Vec<usize> {
     let n = p1.len();
     let mut a = rng.gen_range(0..n);
     let mut b = rng.gen_range(0..n);
@@ -22,9 +18,7 @@ pub fn order_crossover(
 
     let mut child = vec![usize::MAX; n];
     // Copy the slice from p1
-    for i in a..=b {
-        child[i] = p1[i];
-    }
+    child[a..=b].copy_from_slice(&p1[a..=b]);
 
     // Fill remaining from p2, preserving p2's relative order
     let mut pos = (b + 1) % n;
@@ -57,9 +51,7 @@ pub fn pmx_crossover(
         let mut child = vec![usize::MAX; n];
 
         // Copy the segment from the donor
-        for i in a..=b {
-            child[i] = donor[i];
-        }
+        child[a..=b].copy_from_slice(&donor[a..=b]);
 
         // Try to place filler elements
         for i in a..=b {

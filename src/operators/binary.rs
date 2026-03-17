@@ -31,10 +31,8 @@ pub fn two_point_crossover(
 
     let mut c1 = p1.to_vec();
     let mut c2 = p2.to_vec();
-    for i in a..=b {
-        c1[i] = p2[i];
-        c2[i] = p1[i];
-    }
+    c1[a..=b].copy_from_slice(&p2[a..=b]);
+    c2[a..=b].copy_from_slice(&p1[a..=b]);
     (c1, c2)
 }
 
@@ -62,11 +60,7 @@ pub fn uniform_crossover(
 
 /// Bit-flip mutation. Each bit is flipped independently with the given
 /// probability. A common default is 1/n where n is the genome length.
-pub fn bitflip_mutation(
-    genome: &mut [bool],
-    prob: f64,
-    rng: &mut dyn RngCore,
-) {
+pub fn bitflip_mutation(genome: &mut [bool], prob: f64, rng: &mut dyn RngCore) {
     for bit in genome.iter_mut() {
         if rng.gen::<f64>() < prob {
             *bit = !*bit;
