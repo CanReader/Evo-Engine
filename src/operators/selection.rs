@@ -1,14 +1,15 @@
 use crate::Individual;
-use rand::Rng;
+use rand::{Rng, RngCore};
 
 // ---------------------------------------------------------------------------
 // Tournament selection
 // ---------------------------------------------------------------------------
 
+/// Pick the best of `k` randomly chosen individuals (minimization).
 pub fn tournament_select<'a, G: Clone>(
     pop: &'a [Individual<G>],
     k: usize,
-    rng: &mut impl Rng,
+    rng: &mut dyn RngCore,
 ) -> &'a Individual<G> {
     let mut best_idx = rng.gen_range(0..pop.len());
     for _ in 1..k {
@@ -24,9 +25,10 @@ pub fn tournament_select<'a, G: Clone>(
 // NSGA-II crowded tournament selection
 // ---------------------------------------------------------------------------
 
+/// Binary tournament that prefers lower rank, then higher crowding distance.
 pub fn crowded_tournament_select<'a, G: Clone>(
     pop: &'a [Individual<G>],
-    rng: &mut impl Rng,
+    rng: &mut dyn RngCore,
 ) -> &'a Individual<G> {
     let a = rng.gen_range(0..pop.len());
     let b = rng.gen_range(0..pop.len());
@@ -45,13 +47,18 @@ pub fn crowded_tournament_select<'a, G: Clone>(
 // Stochastic Universal Sampling (SUS)
 // ---------------------------------------------------------------------------
 
+/// Fitness-proportionate selection with evenly spaced pointers.
+/// Gives lower-variance samples than plain roulette wheel selection.
 pub fn stochastic_universal_sampling<G: Clone>(
     pop: &[Individual<G>],
     n: usize,
-    rng: &mut impl Rng,
+    rng: &mut dyn RngCore,
 ) -> Vec<Individual<G>> {
-    // Fitness proportionate — invert because we minimise.
-    let max_fit = pop.iter().map(|i| i.fitness()).fold(f64::NEG_INFINITY, f64::max);
+    // Invert fitness because we minimize
+    let max_fit = pop
+        .iter()
+        .map(|i| i.fitness())
+        .fold(f64::NEG_INFINITY, f64::max);
     let fitnesses: Vec<f64> = pop.iter().map(|i| max_fit - i.fitness() + 1e-6).collect();
     let total: f64 = fitnesses.iter().sum();
 
@@ -76,16 +83,17 @@ pub fn stochastic_universal_sampling<G: Clone>(
 // Rank-based selection
 // ---------------------------------------------------------------------------
 
-pub fn rank_select<G: Clone>(
-    pop: &[Individual<G>],
-    rng: &mut impl Rng,
-) -> &Individual<G> {
+/// Linear ranking selection. Individuals are ranked by fitness and selected
+/// with probability proportional to their rank.
+pub fn rank_select<'a, G: Clone>(
+    pop: &'a [Individual<G>],
+    rng: &mut dyn RngCore,
+) -> &'a Individual<G> {
     let n = pop.len();
-    // Sort indices by fitness (ascending = best first for minimisation).
     let mut indices: Vec<usize> = (0..n).collect();
     indices.sort_by(|&a, &b| pop[a].fitness().partial_cmp(&pop[b].fitness()).unwrap());
 
-    // Linear ranking: best gets rank n, worst gets rank 1.
+    // Best gets rank n, worst gets rank 1
     let total_rank: usize = n * (n + 1) / 2;
     let pick = rng.gen_range(0..total_rank);
     let mut cumulative = 0;
