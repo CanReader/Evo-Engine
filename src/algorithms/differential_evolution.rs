@@ -1,7 +1,12 @@
-//! Differential Evolution (DE/rand/1/bin, DE/best/1/bin, DE/current-to-best/1).
+//! Differential Evolution with three strategy variants.
+//!
+//! DE works differently from GA: instead of selection + crossover + mutation
+//! as separate steps, each individual generates a trial vector by combining
+//! differences between other population members, then the trial replaces
+//! the parent only if it is better (greedy selection).
 
 use crate::{
-    population_diversity, EvolutionConfig, EvolutionResult, EvolutionaryAlgorithm,
+    population_diversity, EvoResult, EvolutionConfig, EvolutionResult, EvolutionaryAlgorithm,
     GenerationStats, Individual, Problem,
 };
 use rand::rngs::StdRng;
@@ -9,16 +14,23 @@ use rand::{Rng, SeedableRng};
 
 #[derive(Clone, Copy, Debug)]
 pub enum DEStrategy {
+    /// DE/rand/1/bin: base vector chosen at random.
     Rand1Bin,
+    /// DE/best/1/bin: base vector is the current best.
     Best1Bin,
+    /// DE/current-to-best/1: base is the current individual,
+    /// biased toward the best. Good balance of exploration and exploitation.
     CurrentToBest1,
 }
 
 pub struct DifferentialEvolution {
     pub strategy: DEStrategy,
-    pub f: f64,       // scale factor
-    pub cr: f64,      // crossover rate
-    pub dither: bool,  // randomise F per generation
+    /// Scale factor controlling the amplification of difference vectors.
+    pub f: f64,
+    /// Crossover rate for binomial crossover.
+    pub cr: f64,
+    /// When true, F is randomly perturbed each generation (helps avoid stagnation).
+    pub dither: bool,
 }
 
 impl Default for DifferentialEvolution {
@@ -39,7 +51,9 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
         &self,
         problem: &P,
         config: &EvolutionConfig,
-    ) -> EvolutionResult<Vec<f64>> {
+    ) -> EvoResult<EvolutionResult<Vec<f64>>> {
+        config.validate()?;
+
         let mut rng = match config.seed {
             Some(s) => StdRng::seed_from_u64(s),
             None => StdRng::from_entropy(),
@@ -49,7 +63,6 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
         let dim = problem.dimension();
         let np = config.population_size;
 
-        // Initialise
         let mut pop: Vec<Individual<Vec<f64>>> = (0..np)
             .map(|_| {
                 let g = problem.random_genome(&mut rng);
@@ -66,8 +79,11 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
             .clone();
 
         let mut history = Vec::new();
+        let mut generations_run = 0;
 
         for gen in 0..config.max_generations {
+            generations_run = gen + 1;
+
             let f = if self.dither {
                 self.f + rng.gen::<f64>() * 0.2 - 0.1
             } else {
@@ -84,13 +100,10 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
             let mut trials: Vec<Individual<Vec<f64>>> = Vec::with_capacity(np);
 
             for i in 0..np {
-                // Pick distinct random indices
-                let mut pick = || {
-                    loop {
-                        let idx = rng.gen_range(0..np);
-                        if idx != i {
-                            return idx;
-                        }
+                let mut pick = || loop {
+                    let idx = rng.gen_range(0..np);
+                    if idx != i {
+                        return idx;
                     }
                 };
 
@@ -138,8 +151,8 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
                 let mut trial = Individual::new(trial_genome);
                 problem.evaluate(&mut trial);
 
-                // Greedy selection
-                if trial.fitness() <= pop[i].fitness() {
+                // Greedy selection: keep the better one
+                if trial.constrained_cmp(&pop[i]) != std::cmp::Ordering::Greater {
                     trials.push(trial);
                 } else {
                     trials.push(pop[i].clone());
@@ -148,7 +161,6 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
 
             pop = trials;
 
-            // Update best
             for ind in &pop {
                 if ind.fitness() < best_ever.fitness() {
                     best_ever = ind.clone();
@@ -171,11 +183,11 @@ impl EvolutionaryAlgorithm for DifferentialEvolution {
             }
         }
 
-        EvolutionResult {
+        Ok(EvolutionResult {
             best: best_ever,
             pareto_front: Vec::new(),
             history,
-            generations_run: config.max_generations,
-        }
+            generations_run,
+        })
     }
 }
